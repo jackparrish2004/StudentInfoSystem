@@ -2,7 +2,7 @@ public class Professor {
     String name;
     String ID;
     String email;
-    String[] coursesTaught = new String[1];
+    String[] coursesTaught = new String[4];
     String department;
 
     Professor(String name, String ID, String email, String department){

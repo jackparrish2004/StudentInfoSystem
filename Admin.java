@@ -17,15 +17,15 @@ public class Admin {
         this.email = "admin@uni.edu";
     }
 
-    void addStudent(){
+    void addStudent(Student student){
         /*Takes Student class as argument and adds them to system */
     }
 
-    void removeStudent(){
+    void removeStudent(Student student){
         /*Deletes a given student from the system */
     }
 
-    void modifyStudentInfo(){
+    void modifyStudentInfo(Student student){
         /*Updates given student info */
     }
 
@@ -39,15 +39,15 @@ public class Admin {
         return "Student ID was searched for";
     }
 
-    void addCourse(){
+    void addCourse(Course course){
         /*Takes a Course class as an argument and adds it to the system */
     }
 
-    void removeCourse(){
+    void removeCourse(Course course){
         /*Deletes a given course from the system */
     }
 
-    void modifyCourseInfo(){
+    void modifyCourseInfo(Course course){
         /*Updates given course info */
     }
 
@@ -65,23 +65,23 @@ public class Admin {
         /*Updates the course grade for a given student and course */
     }
 
-    void viewCourseHistory(){
+    void viewCourseHistory(Student student){
         /*Prints out a student's course history and grades */
     }
 
-    void viewStudentGPA(){
+    void viewStudentGPA(Student student){
         /*Prints out a student's given GPA */
     }
 
-    void addInstructor(){
-        /*Adds a given instructor to the system */
+    void addProfessor(Professor professor){
+        /*Adds a given professor to the system */
     }
 
-    void removeInstructor(){
-        /*Removes a given instructor from the system */
+    void removeProfessor(Professor professor){
+        /*Removes a given professor from the system */
     }
 
-    void modifyInstructorInfo(){
-        /*Updates given instructor info */
+    void modifyProfessorInfo(Professor professor){
+        /*Updates given professor info */
     }
 }
