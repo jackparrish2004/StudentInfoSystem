@@ -12,8 +12,15 @@
  * Most Admin methods related to Student classes are done
  * Some Admin methods related to Course classes are done
  * No Admin methods related to Professor classes are done
- * All methods in the class diagram are defined, but do not necessarily have code written
+ * All methods in the class diagram are defined, but do not all have code written
  * Some currently written methods may be re-examined for efficiency and readability
+ * There are a few methods that have been added that were not included in the original diagram
+ * 
+ * printStudentInfo: displays student information on the console
+ * printCourseInfo: displays course information on the console
+ * enrollCourse: adds a course to a students enrolled courses
+ * updateStudentGPA: calculates a students cumulative gpa based on completed and enrolled courses
+ * 
  */
 
 import java.util.Scanner;
@@ -35,10 +42,11 @@ public class StudentInfoSystem{
         System.out.println("2. Remove Student");
         System.out.println("3. Update Student Info");
         System.out.println("4. Print Student Info");
-        System.out.println("5. Update Course Grade");
-        System.out.println("6. View Course History");
-        System.out.println("7. View Cumulative GPA");
-        System.out.println("8. Return to previous menu");
+        System.out.println("5. Enroll student in a course");
+        System.out.println("6. Update Course Grade");
+        System.out.println("7. View Course History");
+        System.out.println("8. View Cumulative GPA");
+        System.out.println("9. Return to previous menu");
     }
 
     static void printCourseOptions(){
@@ -46,7 +54,7 @@ public class StudentInfoSystem{
         System.out.println("1. Add Course");
         System.out.println("2. Remove Course");
         System.out.println("3. Update Course Info");
-        System.out.println("4. Search for Course");
+        System.out.println("4. Print Course Info");
         System.out.println("5. Return to previous menu");
     }
 
@@ -55,7 +63,8 @@ public class StudentInfoSystem{
         System.out.println("1. Add Professor");
         System.out.println("2. Remove Professor");
         System.out.println("3. Update Professor Info");
-        System.out.println("4. Return to previous menu");
+        System.out.println("4. Print Professor Info");
+        System.out.println("5. Return to previous menu");
     }
     public static void main(String[] args){
 
@@ -66,21 +75,20 @@ public class StudentInfoSystem{
 
         Scanner keyboard = new Scanner(System.in);
 
-        admin.addStudent("Jack Parrish", "1111");
-        admin.addStudent("Mario Medeles", "2222");
+        //initializing input variables so there aren't duplicate instances in control structure
+        String studentID;
+        String studentName;
 
-        admin.addCourse("Object Oriented Programming", "CS 280", 3, "Fatima Kuehn", 0);
-        admin.addCourse("Tools and Techniques", "CS 266", 3, "John Nordlie", 20);
-
-        admin.enrollCourse("1111", "CS 280");
-        admin.enrollCourse("2222", "CS 280");
-
-        //admin.updateCourseGrade("1111", "CS 280", "A");
-        //admin.updateCourseGrade("1111", "CS 266", "B");
-
-        //admin.viewStudentGPA("1111");
+        String courseID;
+        String courseName;
+        int credits;
+        int maxStudents;
+        String grade;
         
-        /*
+        String professorID;
+        String professorName;
+        String professorEmail;
+        String department;
 
         printOptions();
         //I put -1 as the exit value, but it can be easily rewritten to be q or quit or something else
@@ -91,19 +99,15 @@ public class StudentInfoSystem{
             if (userInput == 1){
                 printStudentOptions();
                 userInput = getUserInput(keyboard);
+                //nextLine is needed to clear the buffer after reading an int
+                keyboard.nextLine();
                 switch (userInput) {
                     case 1:
-                        
-                        String studentName;
-                        String studentID;
-            
-                        //nextLine is needed to clear the buffer after reading in an int
-                        keyboard.nextLine();
 
                         //Values for student instance are read
-                        System.out.println("Enter the student's name: ");
+                        System.out.print("Enter the student's name: ");
                         studentName = keyboard.nextLine();
-                        System.out.println("Enter the student's ID number: ");
+                        System.out.print("Enter the student's ID number: ");
                         studentID = keyboard.nextLine();
 
                         //Student is instantiated and added to arraylist to track
@@ -111,28 +115,43 @@ public class StudentInfoSystem{
                         
                         break;
                     case 2:
-                        String inputID;
-                        keyboard.nextLine();
-                        System.out.print("Enter student ID: ");
-                        inputID = keyboard.nextLine();
-
-
-                        admin.removeStudent(inputID);
+                        System.out.print("Enter the student's ID number: ");
+                        studentID = keyboard.nextLine();
+                        admin.removeStudent(studentID);
                         break;
                     case 3:
                         admin.modifyStudentInfo();
                         break;
                     case 4:
-                        int index = admin.searchForStudentID("1234");
+                        System.out.print("Enter the student's ID number: ");
+                        studentID = keyboard.nextLine();
+                        admin.printStudentInfo(studentID);
                         break;
                     case 5:
-                        admin.updateCourseGrade("A");
+                        System.out.print("Enter the student's ID number: ");
+                        studentID = keyboard.nextLine();
+                        System.out.print("Enter the course ID: ");
+                        courseID = keyboard.nextLine();
+                        admin.enrollCourse(studentID, courseID);
                         break;
                     case 6:
-                        admin.viewCourseHistory(null);
+                        System.out.print("Enter the student's ID number: ");
+                        studentID = keyboard.nextLine();
+                        System.out.print("Enter the course ID: ");
+                        courseID = keyboard.nextLine();
+                        System.out.print("Enter the letter grade: ");
+                        grade = keyboard.nextLine();
+                        admin.updateCourseGrade(studentID, courseID, grade);
                         break;
                     case 7:
-                        admin.viewStudentGPA(null);
+                        System.out.print("Enter the student's ID number: ");
+                        studentID = keyboard.nextLine();
+                        admin.viewCourseHistory(studentID);
+                        break;
+                    case 8:
+                        System.out.print("Enter the student's ID number: ");
+                        studentID = keyboard.nextLine();
+                        admin.viewStudentGPA(studentID);
                         break;
                     default:
                         System.out.println("------------------\nReturning to previous menu\n------------------");
@@ -142,18 +161,43 @@ public class StudentInfoSystem{
             } else if (userInput == 2){
                 printCourseOptions();
                 userInput = getUserInput(keyboard);
+                keyboard.nextLine();
                 switch (userInput) {
                     case 1:
-                        admin.addCourse();
+                        if (admin.professors.size() == 0) {
+                            System.out.println("There are no professors to teach this course.");
+                            System.out.println("Please add a professor to the system before adding a course");
+                        } else {
+                            System.out.print("Enter the course name: ");
+                            courseName = keyboard.nextLine();
+                            System.out.print("Enter the course ID: ");
+                            courseID = keyboard.nextLine();
+                            System.out.print("Enter the professor ID: ");
+                            professorID = keyboard.nextLine();
+
+                            System.out.print("Enter the number of credits offered: ");
+                            credits = keyboard.nextInt();
+                            keyboard.nextLine();
+
+                            System.out.print("Enter the max number of students that can enroll in this course: ");
+                            maxStudents = keyboard.nextInt();
+                            keyboard.nextLine();
+
+                            admin.addCourse(courseName, courseID, professorID, credits, maxStudents);
+                        }
                         break;
                     case 2:
-                        admin.removeCourse();
+                        System.out.print("Enter the course ID: ");
+                        courseID = keyboard.nextLine();
+                        admin.removeCourse(courseID);
                         break;
                     case 3:
                         admin.modifyCourseInfo();
                         break;
                     case 4:
-                        admin.searchForCourseName(null);
+                        System.out.print("Enter the course ID");
+                        courseID = keyboard.nextLine();
+                        admin.printCourseInfo(courseID);
                         break;
                     default:
                         System.out.println("------------------\nReturning to previous menu\n------------------");
@@ -163,17 +207,36 @@ public class StudentInfoSystem{
             } else if (userInput == 3){
                 printProfessorOptions();
                 userInput = getUserInput(keyboard);
+                keyboard.nextLine();
                 switch (userInput) {
                     case 1:
-                        admin.addProfessor();
+                        System.out.print("Enter the professor name: ");
+                        professorName = keyboard.nextLine();
+
+                        System.out.print("Enter the professor ID: ");
+                        professorID = keyboard.nextLine();
+
+                        System.out.print("Enter the professor email: ");
+                        professorEmail = keyboard.nextLine();
+
+                        System.out.print("Enter the professor department: ");
+                        department = keyboard.nextLine();
+
+                        admin.addProfessor(professorName, professorID, professorEmail, department);
                         break;
                     case 2:
-                        admin.removeProfessor();
+                        System.out.print("Enter the professor ID: ");
+                        professorID = keyboard.nextLine();
+                        admin.removeProfessor(professorID);
                         break;
                     case 3:
                         admin.modifyProfessorInfo();
                         break;
-                
+                    case 4:
+                        System.out.print("Enter the professor ID: ");
+                        professorID = keyboard.nextLine();
+                        admin.printProfessorInfo(professorID);
+                        break;
                     default:
                         System.out.println("------------------\nReturning to previous menu\n------------------");
                         break;
@@ -184,8 +247,6 @@ public class StudentInfoSystem{
             printOptions();
             userInput = getUserInput(keyboard);
         }
-
-        */
 
         keyboard.close();
         System.out.println("Exiting the program");

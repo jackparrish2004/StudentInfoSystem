@@ -19,11 +19,9 @@ public class Admin {
     String ID;
     String email;
 
-    //These are just to store new class instances
-    //I'm open to other storage options
-    static ArrayList<Student> students = new ArrayList<Student>();
-    static ArrayList<Course> courses = new ArrayList<Course>();
-    static ArrayList<Professor> professors = new ArrayList<Professor>();
+    ArrayList<Student> students = new ArrayList<Student>();
+    ArrayList<Course> courses = new ArrayList<Course>();
+    ArrayList<Professor> professors = new ArrayList<Professor>();
     
     //Parameter admin constructor
     Admin(String name, String ID, String email){
@@ -48,9 +46,13 @@ public class Admin {
 
     void removeStudent(String inputID){
         /*Deletes a given student from the system */
-        students.remove(searchForStudentID(inputID));
-
-        System.out.println("Student removed");
+        int studentIndex = searchForStudentID(inputID);
+        if (studentIndex == -1){
+            System.out.println("Student ID not found");
+        } else {
+            students.remove(studentIndex);
+            System.out.println("Student removed");
+        }
     }
 
     //I don't know if this should ask for all info at once, or if it should only ask for info that should be changed
@@ -103,21 +105,36 @@ public class Admin {
                 //I put N/A assuming that there is no grade to receive in the course yet
                 student.coursesEnrolledIn.put(course, "N/A");
                 course.enrolled.add(studentID);
+                System.out.printf("\n%s has been enrolled in %s\n", student.name, course.name);
             }
         }
     }
 
-    void addCourse(String name, String ID, int credits, String taughtBy, int maxStudents){
+    void addCourse(String name, String ID, String professorID, int credits, int maxStudents){
         /*Takes Course information as arguments and adds it to the system */
-        Course course = new Course(name, ID, credits, taughtBy, maxStudents);
-        courses.add(course);
-        System.out.println("Course added");
+        int professorIndex = searchForProfessorID(professorID);
+        if (professorIndex == -1){
+            System.out.println("Professor not found");
+            System.out.println("Course not added");
+        } else {
+            //New course instance is created
+            Course course = new Course(name, ID, credits, maxStudents);
+            //taughtBy is set to the professor instance with a matchin ID
+            course.taughtBy = professors.get(professorIndex);
+            courses.add(course);
+            System.out.println("Course added");
+        }
     }
 
     void removeCourse(String inputID){
         /*Deletes a given course from the system */
-        courses.remove(searchForCourseID(inputID));
-        System.out.println("Course removed");
+        int courseIndex = searchForCourseID(inputID);
+        if (courseIndex == -1){
+            System.out.println("Student ID not found");
+        } else {
+            courses.remove(courseIndex);
+            System.out.println("Course removed");
+        }
     }
 
     void modifyCourseInfo(){
@@ -272,18 +289,49 @@ public class Admin {
         }
     }
 
-    void addProfessor(){
+    void addProfessor(String name, String ID, String email, String department){
         /*Adds a given professor to the system */
+        Professor professor = new Professor(name, ID, email, department);
+        professors.add(professor);
         System.out.println("Professor added");
     }
 
-    void removeProfessor(){
+    void removeProfessor(String inputID){
         /*Removes a given professor from the system */
-        System.out.println("Professor removed");
+        int professorIndex = searchForProfessorID(inputID);
+        if (professorIndex == -1){
+            System.out.println("Professor not found");
+        } else {
+            professors.remove(professorIndex);
+            System.out.println("Professor removed");
+        }
+
     }
 
     void modifyProfessorInfo(){
         /*Updates given professor info */
         System.out.println("Professor info modified");
+    }
+
+    int searchForProfessorID(String inputID){
+        for (int i = 0; i < professors.size(); i++){
+            if ((professors.get(i).ID).compareTo(inputID) == 0){
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    void printProfessorInfo(String inputID){
+        int professorIndex = searchForProfessorID(inputID);
+        if (professorIndex == -1){
+            System.out.println("Professor not found");
+        } else {
+            Professor professor = professors.get(professorIndex);
+            System.out.printf("Professor Name:       %s", professor.name);
+            System.out.printf("Professor ID:         %s", professor.ID);
+            System.out.printf("Professor Email:      %s", professor.email);
+            System.out.printf("Professor Department: %s", professor.department);
+        }
     }
 }
