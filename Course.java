@@ -13,9 +13,9 @@ public class Course {
     int credits;
     Professor taughtBy;
     boolean isAvailable = false;
-    ArrayList<String> enrolled = new ArrayList<String>();
+    ArrayList<String> enrolled = new ArrayList<String>(); //this holds student ID values
     int maxStudents;
-    ArrayList<String> waitlist = new ArrayList<String>();
+    ArrayList<String> waitlist = new ArrayList<String>(); //this holds student ID values
 
     Course(String name, String ID, int credits, int maxStudents){
         this.name = name;

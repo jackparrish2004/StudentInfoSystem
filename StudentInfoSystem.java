@@ -33,7 +33,7 @@ public class StudentInfoSystem{
     }
     static void printOptions(){
         /*This functions prints option categories and prompts the user to enter a number */
-        System.out.println("1. View Student Options\n2. View Course Options\n3. View Instructor Options");
+        System.out.println("1. View Student Options\n2. View Course Options\n3. View Professor Options");
     }
 
     static void printStudentOptions(){
@@ -42,7 +42,7 @@ public class StudentInfoSystem{
         System.out.println("2. Remove Student");
         System.out.println("3. Update Student Info");
         System.out.println("4. Print Student Info");
-        System.out.println("5. Enroll student in a course");
+        System.out.println("5. Enroll Student in a Course");
         System.out.println("6. Update Course Grade");
         System.out.println("7. View Course History");
         System.out.println("8. View Cumulative GPA");
@@ -55,7 +55,8 @@ public class StudentInfoSystem{
         System.out.println("2. Remove Course");
         System.out.println("3. Update Course Info");
         System.out.println("4. Print Course Info");
-        System.out.println("5. Return to previous menu");
+        System.out.println("5. Display Students Enrolled in Course");
+        System.out.println("6. Return to previous menu");
     }
 
     static void printProfessorOptions(){
@@ -72,6 +73,19 @@ public class StudentInfoSystem{
         //We can add some sort of login process later
         //But this will let us test stuff for now
         Admin admin = new Admin();
+
+        //Instances added for testing to bypass repeated use of the CLI
+        admin.addStudent("Bob Smith", "2222");
+        admin.addStudent("Alice Jones", "3333");
+        admin.addStudent("Susan Thompson", "4444");
+
+        admin.addProfessor("Tom Stokke", "5678", "tom@und.edu", "Computer Science");
+        admin.addProfessor("John Nordlie", "1000", "john@und.edu", "Computer Science");
+
+        admin.addCourse("Intro to Programming Languages", "CS 265", "5678", 3, 5);
+        admin.addCourse("Tools and Techniques of Computing Practice", "CS 266", "1000", 3, 5);
+        //End test cases
+
 
         Scanner keyboard = new Scanner(System.in);
 
@@ -96,6 +110,9 @@ public class StudentInfoSystem{
         int userInput = keyboard.nextInt();
 
         while (userInput != -1){
+            /*
+             * THIS IS FOR STUDENT OPTIONS
+             */
             if (userInput == 1){
                 printStudentOptions();
                 userInput = getUserInput(keyboard);
@@ -103,15 +120,19 @@ public class StudentInfoSystem{
                 keyboard.nextLine();
                 switch (userInput) {
                     case 1:
-
                         //Values for student instance are read
                         System.out.print("Enter the student's name: ");
                         studentName = keyboard.nextLine();
                         System.out.print("Enter the student's ID number: ");
                         studentID = keyboard.nextLine();
 
-                        //Student is instantiated and added to arraylist to track
-                        admin.addStudent(studentName, studentID);
+                        //checks if entered ID already belongs to a student
+                        if (admin.searchForStudentID(studentID) > -1){
+                            System.out.println("That ID already belongs to a student");
+                            System.out.println("Try again with a different ID");
+                        } else {
+                            admin.addStudent(studentName, studentID);
+                        }
                         
                         break;
                     case 2:
@@ -120,7 +141,10 @@ public class StudentInfoSystem{
                         admin.removeStudent(studentID);
                         break;
                     case 3:
-                        admin.modifyStudentInfo();
+                        System.out.print("Enter student ID: ");
+                        studentID = keyboard.nextLine();
+
+                        admin.modifyStudentInfo(keyboard, studentID);
                         break;
                     case 4:
                         System.out.print("Enter the student's ID number: ");
@@ -157,7 +181,9 @@ public class StudentInfoSystem{
                         System.out.println("------------------\nReturning to previous menu\n------------------");
                         break;
                 }
-
+            /*
+             * THIS IS FOR COURSE OPTIONS
+             */
             } else if (userInput == 2){
                 printCourseOptions();
                 userInput = getUserInput(keyboard);
@@ -172,18 +198,25 @@ public class StudentInfoSystem{
                             courseName = keyboard.nextLine();
                             System.out.print("Enter the course ID: ");
                             courseID = keyboard.nextLine();
-                            System.out.print("Enter the professor ID: ");
-                            professorID = keyboard.nextLine();
 
-                            System.out.print("Enter the number of credits offered: ");
-                            credits = keyboard.nextInt();
-                            keyboard.nextLine();
+                            if (admin.searchForCourseID(courseID) > -1){
+                                System.out.println("That ID already belongs to a course");
+                                System.out.println("Try again with a new ID");
+                            } else {
 
-                            System.out.print("Enter the max number of students that can enroll in this course: ");
-                            maxStudents = keyboard.nextInt();
-                            keyboard.nextLine();
+                                System.out.print("Enter the professor ID: ");
+                                professorID = keyboard.nextLine();
 
-                            admin.addCourse(courseName, courseID, professorID, credits, maxStudents);
+                                System.out.print("Enter the number of credits offered: ");
+                                credits = keyboard.nextInt();
+                                keyboard.nextLine();
+
+                                System.out.print("Enter the max number of students that can enroll in this course: ");
+                                maxStudents = keyboard.nextInt();
+                                keyboard.nextLine();
+
+                                admin.addCourse(courseName, courseID, professorID, credits, maxStudents);
+                            }
                         }
                         break;
                     case 2:
@@ -192,18 +225,28 @@ public class StudentInfoSystem{
                         admin.removeCourse(courseID);
                         break;
                     case 3:
-                        admin.modifyCourseInfo();
-                        break;
+                        System.out.print("Enter course ID: ");
+                        courseID = keyboard.nextLine();
+                        
+                        admin.modifyCourseInfo(keyboard, courseID);
+                        
                     case 4:
-                        System.out.print("Enter the course ID");
+                        System.out.print("Enter the course ID: ");
                         courseID = keyboard.nextLine();
                         admin.printCourseInfo(courseID);
                         break;
+                    case 5:
+                        System.out.print("Enter the course ID: ");
+                        courseID = keyboard.nextLine();
+                        admin.displayEnrolledStudents(courseID);
                     default:
                         System.out.println("------------------\nReturning to previous menu\n------------------");
                         break;
                 }
 
+            /*
+             * THIS IS FOR PROFESSOR OPTIONS
+             */
             } else if (userInput == 3){
                 printProfessorOptions();
                 userInput = getUserInput(keyboard);
@@ -216,13 +259,18 @@ public class StudentInfoSystem{
                         System.out.print("Enter the professor ID: ");
                         professorID = keyboard.nextLine();
 
-                        System.out.print("Enter the professor email: ");
-                        professorEmail = keyboard.nextLine();
+                        if (admin.searchForProfessorID(professorID) > -1){
+                            System.out.println("That ID already belongs to a professor");
+                            System.out.println("Try again with a new ID");
+                        } else {
+                            System.out.print("Enter the professor email: ");
+                            professorEmail = keyboard.nextLine();
 
-                        System.out.print("Enter the professor department: ");
-                        department = keyboard.nextLine();
+                            System.out.print("Enter the professor department: ");
+                            department = keyboard.nextLine();
 
-                        admin.addProfessor(professorName, professorID, professorEmail, department);
+                            admin.addProfessor(professorName, professorID, professorEmail, department);
+                        }
                         break;
                     case 2:
                         System.out.print("Enter the professor ID: ");
@@ -230,7 +278,10 @@ public class StudentInfoSystem{
                         admin.removeProfessor(professorID);
                         break;
                     case 3:
-                        admin.modifyProfessorInfo();
+                        System.out.print("Enter the professor ID: ");
+                        professorID = keyboard.nextLine();
+
+                        admin.modifyProfessorInfo(keyboard, professorID);
                         break;
                     case 4:
                         System.out.print("Enter the professor ID: ");

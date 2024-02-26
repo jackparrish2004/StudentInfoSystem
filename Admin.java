@@ -13,6 +13,7 @@
  */
 
 import java.util.ArrayList;
+import java.util.Scanner;
 
 public class Admin {
     String name;
@@ -38,33 +39,73 @@ public class Admin {
     }
 
     void addStudent(String studentName, String studentID){
-        /*Takes Student class as argument and adds them to system */
-        
+        /*Takes Student information as arguments and adds a student class to the list*/
         Student student = new Student(studentName, studentID);
         students.add(student);
+        System.out.printf("\n%s has been added to the system\n", studentName);
     }
 
     void removeStudent(String inputID){
         /*Deletes a given student from the system */
         int studentIndex = searchForStudentID(inputID);
+
         if (studentIndex == -1){
             System.out.println("Student ID not found");
         } else {
-            students.remove(studentIndex);
-            System.out.println("Student removed");
-        }
+           Student removedStudent = students.get(studentIndex);
+
+           // Remove the student from enrolled courses
+           for (Course course : courses) {
+               ArrayList<String> studentsInCourse = course.enrolled;
+               studentsInCourse.remove(removedStudent.ID); // I did reverse logic here - TRY accessing student courses and removing courses through student object
+           }
+
+           // Remove the student from the list of students
+           students.remove(studentIndex);
+
+           System.out.println("Student '" + removedStudent.name+ "' removed");
+       }
     }
 
-    //I don't know if this should ask for all info at once, or if it should only ask for info that should be changed
-    void modifyStudentInfo(){
+    void modifyStudentInfo(Scanner keyboard, String studentID){
         /*Updates given student info */
-        System.out.println("Student info modified");
+        int studentIndex = searchForStudentID(studentID);
+        if (studentIndex == -1){
+            System.out.println("Student ID not found");
+        } else {
+            Student student = students.get(studentIndex);
+            System.out.println("1. Student name");
+            System.out.println("2. Student ID");
+            System.out.print("Enter a number to change the value: ");
+            int userInput = keyboard.nextInt();
+            keyboard.nextLine(); //clears input buffer
+            
+            switch (userInput) {
+                case 1:
+                    System.out.print("Enter new student name: ");
+                    student.name = keyboard.nextLine();
+                    break;
+                case 2:
+                    System.out.print("Enter new student ID: ");
+                    String newID = keyboard.nextLine();
+                    if (searchForStudentID(newID) > -1){
+                        System.out.println("ID already belongs to a student");
+                        System.out.println("Try again with a different ID");
+                    } else {
+                        student.ID = newID;
+                    }
+                    break;
+                default:
+                    System.out.println("Invalid command");
+                    break;
+                
+            }
+        }
 
     }
 
-    //This method is exclusively used internally to find the index of a given student
     int searchForStudentID(String inputID){
-        /*Returns a student class with the given ID */
+        /*Returns an integer indicating the student's location in the list */
         for (int i = 0; i < students.size(); i++){
             if ((students.get(i).ID).compareTo(inputID) == 0){
                 return i;
@@ -76,11 +117,11 @@ public class Admin {
     void printStudentInfo(String inputID){
         int studentIndex = searchForStudentID(inputID);
         if (studentIndex == -1){
-            System.out.println("Student ID not found");
+            System.out.println("\nStudent ID not found");
         } else {
             Student student = students.get(studentIndex);
 
-            System.out.printf("Student Name:   %s\n", student.name);
+            System.out.printf("\nStudent Name:   %s\n", student.name);
             System.out.printf("Student ID:     %s\n", student.ID);
             System.out.printf("Year in School: %s\n", student.yearInSchool);
         }
@@ -92,14 +133,14 @@ public class Admin {
         int courseIndex = searchForCourseID(courseID);
 
         if (studentIndex == -1){
-            System.out.println("Student ID not found");
+            System.out.println("\nStudent ID not found");
         } else if (courseIndex == -1){
-            System.out.println("Course ID not found");
+            System.out.println("\nCourse ID not found");
         } else {
             Student student = students.get(studentIndex);
             Course course = courses.get(courseIndex);
             if (course.enrolled.size() > course.maxStudents){
-                System.out.println("This course is currently full. You are being added to the waitlist");
+                System.out.println("\nThis course is currently full. You are being added to the waitlist");
                 course.waitlist.add(studentID);
             } else {
                 //I put N/A assuming that there is no grade to receive in the course yet
@@ -110,36 +151,122 @@ public class Admin {
         }
     }
 
+    void dropCourse(String studentID, String courseID){
+        int studentIndex = searchForStudentID(studentID);
+        int courseIndex = searchForCourseID(courseID);
+
+        if (studentIndex == -1){
+            System.out.println("\nStudent ID not found");
+        } else if (courseIndex == -1){
+            System.out.println("\nCourse ID not found");
+        } else {
+            Student student = students.get(studentIndex);
+            Course course = courses.get(courseIndex);
+            student.coursesEnrolledIn.remove(course);
+            System.out.printf("\n%s has been unenrolled from %s\n", student.name, course.name);
+        }
+    }
+
     void addCourse(String name, String ID, String professorID, int credits, int maxStudents){
         /*Takes Course information as arguments and adds it to the system */
         int professorIndex = searchForProfessorID(professorID);
         if (professorIndex == -1){
-            System.out.println("Professor not found");
+            System.out.println("\nProfessor not found");
             System.out.println("Course not added");
         } else {
             //New course instance is created
             Course course = new Course(name, ID, credits, maxStudents);
             //taughtBy is set to the professor instance with a matchin ID
-            course.taughtBy = professors.get(professorIndex);
+            Professor professor = professors.get(professorIndex);
+            course.taughtBy = professor;
+            professor.coursesTaught.add(ID);
+
             courses.add(course);
-            System.out.println("Course added");
+            System.out.printf("\n%s added to course catalog\n", course.name);
         }
     }
 
     void removeCourse(String inputID){
         /*Deletes a given course from the system */
         int courseIndex = searchForCourseID(inputID);
+
         if (courseIndex == -1){
-            System.out.println("Student ID not found");
+            System.out.println("Course ID not found");
         } else {
+            Course removedCourse = courses.get(courseIndex);
             courses.remove(courseIndex);
-            System.out.println("Course removed");
+
+            // Remove the professor associated with the course
+            Professor professor = removedCourse.taughtBy;
+            if (professor != null) {
+                professor.coursesTaught.remove(removedCourse.ID);
+            }
+
+            // Remove students from the course
+            for (String studentID : removedCourse.enrolled){
+                Student student = students.get(searchForStudentID(studentID));
+                student.coursesEnrolledIn.remove(removedCourse);
+            }
+
+            System.out.println("Course '" + removedCourse.name + "' removed");
         }
     }
 
-    void modifyCourseInfo(){
+    void modifyCourseInfo(Scanner keyboard, String courseID){
         /*Updates given course info */
-        System.out.println("Course info modified");
+        int courseIndex = searchForCourseID(courseID);
+        if (courseIndex == -1){
+            System.out.println("\nCourse ID not found");
+        } else {
+            Course course = courses.get(courseIndex);
+            System.out.println("1. Course Name");
+            System.out.println("2. Course ID");
+            System.out.println("3. Number of credits");
+            System.out.println("4. Professor teaching course");
+            System.out.println("5. Max students");
+            System.out.print("Enter a number to change the value: ");
+            int userInput = keyboard.nextInt();
+            keyboard.nextLine();
+            switch (userInput) {
+                case 1:
+                    System.out.print("Enter new course name: ");
+                    course.name = keyboard.nextLine();
+                    break;
+                case 2:
+                    System.out.print("Enter new course ID: ");
+                    String newID = keyboard.nextLine();
+                    if (searchForCourseID(courseID) > -1){
+                        System.out.println("That ID already belongs to a course");
+                        System.out.println("Try again with a new ID");
+                    } else {
+                        course.ID = newID;
+                    }
+                    break;
+                case 3:
+                    System.out.print("Enter new credit amount: ");
+                    course.credits = keyboard.nextInt();
+                    keyboard.nextLine();
+                    break;
+                case 4:
+                    System.out.print("Enter ID of new professor: ");
+                    String professorID = keyboard.nextLine();
+                    int professorIndex = searchForProfessorID(professorID);
+                    if (professorIndex == -1){
+                        System.out.println("Professor not found");
+                    } else {
+                        course.taughtBy = professors.get(professorIndex);
+                    }
+                    break;
+                case 5:
+                    System.out.print("Enter new max students: ");
+                    course.maxStudents = keyboard.nextInt();
+                    break;
+                default:
+                    System.out.println("Invalid command");
+                    break;
+                }
+            }
+        
     }
 
     int searchForCourseID(String inputID){
@@ -156,19 +283,43 @@ public class Admin {
         
         int courseIndex = searchForCourseID(inputID);
         if (courseIndex == -1){
-            System.out.println("Course ID not found");
+            System.out.println("\nCourse ID not found");
         } else {
             Course course = courses.get(courseIndex);
-            System.out.printf("Course Name:     %s\n", course.name);
+            System.out.printf("\nCourse Name:     %s\n", course.name);
             System.out.printf("Course ID:       %s\n", course.ID);
             System.out.printf("Credits Offered: %d\n", course.credits);
-            System.out.printf("Professor:       %s\n", course.taughtBy);
+            if (course.taughtBy.name != null){
+                System.out.printf("Professor:       %s\n", course.taughtBy.name);
+            } else {
+                System.out.print("Professor:       N/A\n");
+            }
+            
         }
     }
 
-    //-----------------------------------------------------
-    //I think there should be methods for displaying what students are enrolled in a course
-    //-----------------------------------------------------
+    void displayEnrolledStudents(String courseID){
+        /*This method prints out all students enrolled in a given course
+         *If a waitlist exists, this method prints that too*/
+
+        int courseIndex = searchForCourseID(courseID);
+        if (courseIndex == -1){
+            System.out.println("\nCourse ID not found");
+        } else {
+            Course course = courses.get(courseIndex);
+            System.out.printf("\nStudents enrolled in %s:\n", course.name);
+            for (String student : course.enrolled){
+                System.out.printf("%s\n", student);
+            }
+            if (course.waitlist.size() > 0){
+                System.out.printf("Students waitlisted for %s:\n", course.name);
+                for (String student : course.waitlist){
+                    System.out.printf("%s\n", student);
+                }
+            } 
+        }
+        
+    }
 
     void updateCourseGrade(String studentID, String courseID, String grade){
         /*Updates the course grade for a given student and course */
@@ -176,16 +327,16 @@ public class Admin {
         int courseIndex = searchForCourseID(courseID);
 
         if (studentIndex == -1){
-            System.out.println("Student ID not found");
+            System.out.println("\nStudent ID not found");
         } else if (courseIndex == -1){
-            System.out.println("Course ID not found");
+            System.out.println("\nCourse ID not found");
         } else {
             Student student = students.get(studentIndex);
             Course course = courses.get(courseIndex);
 
             student.coursesEnrolledIn.put(course, grade);
 
-            System.out.println("Course grade updated");
+            System.out.printf("\n%s now has a %s in the course %s\n", student.name, grade, course.name);
         }
         updateStudentGPA("1111");
     }
@@ -194,7 +345,7 @@ public class Admin {
     void updateStudentGPA(String inputID){
         int studentIndex = searchForStudentID(inputID);
         if (studentIndex == -1){
-            System.out.println("Student ID not found");
+            System.out.println("\nStudent ID not found");
         } else {
             Student student = students.get(studentIndex);
             float totalCredits = 0;
@@ -237,6 +388,7 @@ public class Admin {
                     case "N/A":
                         //In this case, the class cannot be used to calculate gpa, so the total credits are removed 
                         totalCredits -= course.credits;
+                        break;
                     default:
                         gradePoints += (course.credits * 0);
                         break;
@@ -253,24 +405,24 @@ public class Admin {
         /*Prints out a student's course history and grades */
         int studentIndex = searchForStudentID(studentID);
         if (studentIndex == -1){
-            System.out.println("Student not found");
+            System.out.println("\nStudent not found");
         } else {
             Student student = students.get(studentIndex);
 
             //separate print loops are used to indicate what courses a student has completed and courses they are currently taking
             if (student.coursesCompleted.size() == 0){
-                System.out.println("Student has not completed any courses");
+                System.out.println("\nStudent has not completed any courses");
             } else {
-                System.out.println("Courses completed:");
+                System.out.println("\nCourses completed:");
                 for (Course course : student.coursesCompleted.keySet()){
                     System.out.printf("%s : %s\n", course.name, student.coursesCompleted.get(course));
                 }
             }
 
             if (student.coursesEnrolledIn.size() == 0){
-                System.out.println("Student is not currently enrolled in any courses");
+                System.out.println("\nStudent is not currently enrolled in any courses");
             } else {
-                System.out.println("Courses enrolled in:");
+                System.out.println("\nCourses enrolled in:");
                 for (Course course : student.coursesEnrolledIn.keySet()){
                     System.out.printf("%s : %s\n", course.name, student.coursesEnrolledIn.get(course));
                 }
@@ -278,14 +430,14 @@ public class Admin {
         }
     }
 
-    void viewStudentGPA(String inputID){
+    void viewStudentGPA(String studentID){
         /*Prints out a student's given GPA */
-        int studentIndex = searchForStudentID(inputID);
+        int studentIndex = searchForStudentID(studentID);
         if (studentIndex == -1){
-            System.out.println("Student not found");
+            System.out.println("\nStudent not found");
         } else {
             Student student = students.get(studentIndex);
-            System.out.printf("Student GPA: %.2f\n", student.cumulativeGPA);
+            System.out.printf("\n%s GPA: %.2f\n", student.name, student.cumulativeGPA);
         }
     }
 
@@ -293,7 +445,7 @@ public class Admin {
         /*Adds a given professor to the system */
         Professor professor = new Professor(name, ID, email, department);
         professors.add(professor);
-        System.out.println("Professor added");
+        System.out.printf("\n%s added to the system\n", professor.name);
     }
 
     void removeProfessor(String inputID){
@@ -301,16 +453,62 @@ public class Admin {
         int professorIndex = searchForProfessorID(inputID);
         if (professorIndex == -1){
             System.out.println("Professor not found");
+
         } else {
+            Professor removedProfessor = professors.get(professorIndex);
             professors.remove(professorIndex);
-            System.out.println("Professor removed");
-        }
+
+            // Remove courses associated with the professor
+            for (String courseID : removedProfessor.coursesTaught){
+                courses.get(searchForCourseID(courseID)).taughtBy = null;
+            }
+
+            System.out.println("Professor '" + removedProfessor.name + "' removed");
+            }
 
     }
 
-    void modifyProfessorInfo(){
+    void modifyProfessorInfo(Scanner keyboard, String professorID){
         /*Updates given professor info */
-        System.out.println("Professor info modified");
+        int professorIndex = searchForProfessorID(professorID);
+        if (professorIndex == -1){
+            System.out.println("\nProfessor not found");
+        } else {
+            Professor professor = professors.get(professorIndex);
+            System.out.println("1. Professor name");
+            System.out.println("2. Professor ID");
+            System.out.println("3. Professor email");
+            System.out.println("4. Professor department");
+            int userInput = keyboard.nextInt();
+            switch (userInput) {
+                case 1:
+                    System.out.print("Enter new professor name: ");
+                    professor.name = keyboard.nextLine();
+                    break;
+                case 2:
+                    System.out.print("Enter new professor ID: ");
+                    String newID = keyboard.nextLine();
+                    if (searchForProfessorID(newID) > -1){
+                        System.out.println("That ID already belongs to a professor");
+                        System.out.println("Try again with a new ID");
+                    } else {
+                        professor.ID = newID;
+                    }
+                    break;
+                case 3:
+                    System.out.print("Enter new professor email: ");
+                    professor.email = keyboard.nextLine();
+                    break;
+                case 4:
+                    System.out.print("Enter new professor department: ");
+                    professor.department = keyboard.nextLine();
+                    break;
+                default:
+                    System.out.println("Invalid command");
+                    break;
+            }
+
+        }
     }
 
     int searchForProfessorID(String inputID){
@@ -325,10 +523,10 @@ public class Admin {
     void printProfessorInfo(String inputID){
         int professorIndex = searchForProfessorID(inputID);
         if (professorIndex == -1){
-            System.out.println("Professor not found");
+            System.out.println("\nProfessor not found");
         } else {
             Professor professor = professors.get(professorIndex);
-            System.out.printf("Professor Name:       %s", professor.name);
+            System.out.printf("\nProfessor Name:       %s", professor.name);
             System.out.printf("Professor ID:         %s", professor.ID);
             System.out.printf("Professor Email:      %s", professor.email);
             System.out.printf("Professor Department: %s", professor.department);

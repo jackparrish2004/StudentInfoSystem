@@ -10,7 +10,7 @@ public class Professor {
     String name;
     String ID;
     String email;
-    ArrayList<String> coursesTaught = new ArrayList<String>();
+    ArrayList<String> coursesTaught = new ArrayList<String>(); //this holds course ID
     String department;
 
     Professor(String name, String ID, String email, String department){
